@@ -83,8 +83,7 @@ func (muer *MultiUploader) uploadStatusEvent() {
 	}
 
 	go func() {
-		ticker := time.NewTicker(3 * time.Second) // 每3秒统计
-		//ticker := time.NewTicker(990 * time.Millisecond) // 每秒统计
+		ticker := time.NewTicker(1 * time.Second)
 		defer ticker.Stop()
 		for {
 			select {

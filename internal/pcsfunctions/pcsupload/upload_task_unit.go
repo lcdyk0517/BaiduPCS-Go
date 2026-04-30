@@ -201,9 +201,14 @@ func (utu *UploadTaskUnit) rapidUpload() (isContinue bool, result *taskframework
 
 	uk, pcsError := utu.PCS.CacheUK()
 	if pcsError != nil {
-		result.ResultMessage = "获取用户uk错误, 请确保登录信息包含了STOKEN"
-		result.Err = pcsError
-		return
+		activeUID := pcsconfig.Config.ActiveUser().UID
+		if activeUID == 0 {
+			result.ResultMessage = "获取用户uk错误, 请确保登录信息包含了STOKEN"
+			result.Err = pcsError
+			return
+		}
+		fmt.Printf("[%s] 获取用户uk失败, 使用当前帐号uid继续上传: %d\n", utu.taskInfo.Id(), activeUID)
+		uk = int64(activeUID)
 	}
 	currentTime := time.Now().Unix()
 	offset, err := creaetDataOffset(hex.EncodeToString(utu.LocalFileChecksum.MD5), uk, currentTime, utu.LocalFileChecksum.Length, DefaultContentSize)

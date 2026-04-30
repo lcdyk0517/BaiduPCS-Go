@@ -11,6 +11,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 	"unicode"
 
 	"github.com/olekukonko/tablewriter"
@@ -475,6 +476,78 @@ func main() {
 			},
 		},
 		{
+			Name:  "qrlogin",
+			Usage: "扫码登录百度账号",
+			Description: `
+	使用百度网盘APP扫描二维码登录账号，无需输入密码。
+
+	示例:
+		BaiduPCS-Go qrlogin
+		BaiduPCS-Go qrlogin --timeout 300
+		BaiduPCS-Go qrlogin --qr-file /tmp/baidupcs-qrcode.png`,
+			Category: "百度帐号",
+			Before:   reloadFn,
+			After:    saveFunc,
+			Action: func(c *cli.Context) error {
+				timeout := c.Int("timeout")
+				return pcscommand.RunQRLogin(
+					time.Duration(timeout)*time.Second, c.String("qr-file"))
+			},
+			Flags: []cli.Flag{
+				cli.IntFlag{
+					Name:  "timeout",
+					Usage: "二维码超时时间（秒）",
+					Value: 300,
+				},
+				cli.StringFlag{
+					Name:  "qr-file",
+					Usage: "将二维码图片保存到指定路径",
+				},
+			},
+		},
+		{
+			Name:     "qrlogin-init",
+			Usage:    "初始化扫码登录并输出二维码信息",
+			Category: "百度帐号",
+			Before:   reloadFn,
+			Action: func(c *cli.Context) error {
+				return pcscommand.RunQRLoginInit(c.String("qr-file"))
+			},
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:  "qr-file",
+					Usage: "将二维码图片保存到指定路径",
+				},
+			},
+		},
+		{
+			Name:     "qrlogin-status",
+			Usage:    "查询扫码登录状态",
+			Category: "百度帐号",
+			Before:   reloadFn,
+			Action: func(c *cli.Context) error {
+				if c.NArg() != 1 {
+					cli.ShowCommandHelp(c, c.Command.Name)
+					return nil
+				}
+				return pcscommand.RunQRLoginStatus(c.Args().Get(0))
+			},
+		},
+		{
+			Name:     "qrlogin-finish",
+			Usage:    "使用临时BDUSS完成扫码登录",
+			Category: "百度帐号",
+			Before:   reloadFn,
+			After:    saveFunc,
+			Action: func(c *cli.Context) error {
+				if c.NArg() != 1 {
+					cli.ShowCommandHelp(c, c.Command.Name)
+					return nil
+				}
+				return pcscommand.RunQRLoginFinish(c.Args().Get(0))
+			},
+		},
+		{
 			Name:  "su",
 			Usage: "切换百度帐号",
 			Description: `
@@ -700,6 +773,16 @@ func main() {
 					Name:  "l",
 					Usage: "切换工作目录后自动列出工作目录下的文件和目录",
 				},
+			},
+		},
+		{
+			Name:      "commander-ls",
+			Usage:     "以机器可读格式列出目录",
+			UsageText: app.Name + " commander-ls <目录>",
+			Category:  "百度网盘",
+			Before:    reloadFn,
+			Action: func(c *cli.Context) error {
+				return pcscommand.RunCommanderLs(c.Args().Get(0))
 			},
 		},
 		{
